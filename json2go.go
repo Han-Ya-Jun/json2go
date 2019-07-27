@@ -63,6 +63,8 @@ type Transmogrifier struct {
 	//
 	// If false, a struct definition will be generated for the type.
 	MapType bool
+	//IsWritePkg is used to control pkg
+	WritePkg bool
 }
 
 // NewTransmogrifier returns a new transmogrifier that reads from r and writes
@@ -76,19 +78,6 @@ func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
 		name = strings.Title(name)
 	}
 	return &Transmogrifier{r: r, w: w, name: name, structName: "Struct", pkg: "main"}
-}
-
-// NewTransmogrifier returns a new transmogrifier that reads from r and writes
-// to w.  The name is the name of the type that will be defined from the JSON.
-// Embedded struct names, if there are any embedded structs, are derived from
-// their associated key value.
-func NewTransmogrifierWithPkg(name string, r io.Reader, w io.Writer, pkgName string) *Transmogrifier {
-	if len(name) == 0 {
-		name = "Type"
-	} else {
-		name = strings.Title(name)
-	}
-	return &Transmogrifier{r: r, w: w, name: name, structName: "Struct", pkg: pkgName}
 }
 
 // SetStructName sets the name of the type derived from the interface{}
@@ -159,10 +148,15 @@ func (t *Transmogrifier) Gen() error {
 	buff.Reset()
 	var wg sync.WaitGroup
 	// Write the package and import stuff to the buffer
-	n, err := buff.WriteString(fmt.Sprintf("package %s\n\n", t.pkg))
-	if err != nil {
-		return err
+	var n int
+	//var err error
+	if t.WritePkg {
+		n, err = buff.WriteString(fmt.Sprintf("package %s\n\n", t.pkg))
+		if err != nil {
+			return err
+		}
 	}
+
 	if n != (10 + len(t.pkg)) {
 		return ShortWriteError{n: len(t.pkg), written: n, operation: "package name to buffer"}
 	}

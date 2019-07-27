@@ -76,6 +76,7 @@ var (
 	writeJSON  bool
 	importJSON bool
 	mapType    bool
+	writePkg   bool
 	help       bool
 	tagKeys    stringArr
 )
@@ -97,6 +98,8 @@ func init() {
 	flag.BoolVar(&importJSON, "a", false, "the short flag for -addimport")
 	flag.BoolVar(&mapType, "maptype", false, "the provided json is a map type; not a struct type")
 	flag.BoolVar(&mapType, "m", false, "the short flag for -maptype")
+	flag.BoolVar(&writePkg, "writepkg", true, "write pkg")
+	flag.BoolVar(&writePkg, "wp", true, "the short flag for -writepkg")
 	flag.BoolVar(&help, "help", false, "json2go help")
 	flag.BoolVar(&help, "h", false, "the short flag for -help")
 	flag.Var(&tagKeys, "tagkeys", "additional struct tag keys; can be used more than once")
@@ -254,6 +257,7 @@ flag              default   description
 -h  -help         false     Print the help text; 'help' is also valid.
 -t  -tagkey                 Additional key to be added to struct tags.
                             For multiple keys, use one per key value.
+-wp -writepkg     true      Write Pkg
 `
 	fmt.Println(helpText)
 }
