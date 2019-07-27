@@ -78,6 +78,19 @@ func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
 	return &Transmogrifier{r: r, w: w, name: name, structName: "Struct", pkg: "main"}
 }
 
+// NewTransmogrifier returns a new transmogrifier that reads from r and writes
+// to w.  The name is the name of the type that will be defined from the JSON.
+// Embedded struct names, if there are any embedded structs, are derived from
+// their associated key value.
+func NewTransmogrifierWithPkg(name string, r io.Reader, w io.Writer, pkgName string) *Transmogrifier {
+	if len(name) == 0 {
+		name = "Type"
+	} else {
+		name = strings.Title(name)
+	}
+	return &Transmogrifier{r: r, w: w, name: name, structName: "Struct", pkg: pkgName}
+}
+
 // SetStructName sets the name of the type derived from the interface{}
 // portion of JSON that is of type map[string]interface{}.  This is used
 // when MapType is set to true.  If MapType is set to true but typeName is
