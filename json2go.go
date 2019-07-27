@@ -155,10 +155,9 @@ func (t *Transmogrifier) Gen() error {
 		if err != nil {
 			return err
 		}
-	}
-
-	if n != (10 + len(t.pkg)) {
-		return ShortWriteError{n: len(t.pkg), written: n, operation: "package name to buffer"}
+		if n != (10 + len(t.pkg)) {
+			return ShortWriteError{n: len(t.pkg), written: n, operation: "package name to buffer"}
+		}
 	}
 
 	if t.ImportJSON {
