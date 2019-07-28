@@ -25,6 +25,7 @@ func TestBasicStruct(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
+	fmt.Println(buff.String())
 	if buff.String() != expectedBasicPkg {
 		t.Errorf("expected %q got %q", expectedBasicPkg, buff.String())
 	}
@@ -444,10 +445,10 @@ func TestEmptySlice(t *testing.T) {
 	var buff bytes.Buffer
 	calvin := NewTransmogrifier("test", r, &buff)
 	err := calvin.Gen()
-	if err !=  nil {
+	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if buff.String () != expected {
+	if buff.String() != expected {
 		t.Errorf("got %q want %q", buff.String(), expected)
 	}
 }

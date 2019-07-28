@@ -38,7 +38,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mohae/json2go"
+	"github.com/Han-Ya-Jun/json2go"
 )
 
 // handle flags that are string arrays
@@ -77,6 +77,7 @@ var (
 	importJSON bool
 	mapType    bool
 	writePkg   bool
+	writeTag   bool
 	help       bool
 	tagKeys    stringArr
 )
@@ -100,6 +101,8 @@ func init() {
 	flag.BoolVar(&mapType, "m", false, "the short flag for -maptype")
 	flag.BoolVar(&writePkg, "writepkg", true, "write pkg")
 	flag.BoolVar(&writePkg, "wp", true, "the short flag for -writepkg")
+	flag.BoolVar(&writeTag, "writetag", true, "write tag")
+	flag.BoolVar(&writeTag, "wt", true, "the short flag for -writetag")
 	flag.BoolVar(&help, "help", false, "json2go help")
 	flag.BoolVar(&help, "h", false, "the short flag for -help")
 	flag.Var(&tagKeys, "tagkeys", "additional struct tag keys; can be used more than once")
@@ -199,6 +202,8 @@ func realMain() int {
 		t.SetPkg(pkg)
 	}
 	t.MapType = mapType
+	t.WritePkg = writePkg
+	t.WriteTag = writeTag
 	t.SetStructName(structName)
 	t.SetTagKeys(tagKeys.Get())
 	// Generate the Go Types
@@ -258,6 +263,7 @@ flag              default   description
 -t  -tagkey                 Additional key to be added to struct tags.
                             For multiple keys, use one per key value.
 -wp -writepkg     true      Write Pkg
+-wt -writetag     true      Write tag
 `
 	fmt.Println(helpText)
 }

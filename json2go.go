@@ -63,8 +63,10 @@ type Transmogrifier struct {
 	//
 	// If false, a struct definition will be generated for the type.
 	MapType bool
-	//IsWritePkg is used to control pkg
+	//WritePkg is used to control pkg
 	WritePkg bool
+	//WriteTag is used to control tag
+	WriteTag bool
 }
 
 // NewTransmogrifier returns a new transmogrifier that reads from r and writes
@@ -201,7 +203,7 @@ func (t *Transmogrifier) Gen() error {
 
 DEFINE:
 	go func() {
-		defineStruct(q, t.tagKeys, result, &wg)
+		defineStruct(q, t.tagKeys, result, &wg, t.WriteTag)
 	}()
 	// collect the results until the resCh is closed
 	for {
@@ -246,7 +248,7 @@ func (s *structDef) Bytes() []byte {
 // GenMapType unmarshals JSON-encoded data that is in the form of
 // map[string][]Type and returns both the type declaration and the struct
 // definition(s) for Type.
-func GenMapType(typeName, name string, tagKeys []string, data []byte) ([]byte, error) {
+func GenMapType(typeName, name string, tagKeys []string, data []byte, writeTag bool) ([]byte, error) {
 	if len(typeName) == 0 {
 		return nil, fmt.Errorf("type name required")
 	}
@@ -292,7 +294,7 @@ func GenMapType(typeName, name string, tagKeys []string, data []byte) ([]byte, e
 	q.Enqueue(s)
 	// start the worker &  send initial work item
 	go func() {
-		defineStruct(q, tagKeys, result, &wg)
+		defineStruct(q, tagKeys, result, &wg, writeTag)
 	}()
 	// collect the results until the resCh is closed
 	var i int
@@ -308,7 +310,7 @@ func GenMapType(typeName, name string, tagKeys []string, data []byte) ([]byte, e
 	return buff.Bytes(), nil
 }
 
-func defineStruct(q *queue.Queue, tagKeys []string, result chan []byte, wg *sync.WaitGroup) {
+func defineStruct(q *queue.Queue, tagKeys []string, result chan []byte, wg *sync.WaitGroup, writeTag bool) {
 	for {
 		if q.IsEmpty() {
 			break
@@ -328,7 +330,9 @@ func defineStruct(q *queue.Queue, tagKeys []string, result chan []byte, wg *sync
 			if typ == reflect.Map.String() {
 				tmp := newStructDef(k, val.Elem())
 				q.Enqueue(tmp)
-				s.buff.WriteString(fmt.Sprintf("\t%s `json:%q`\n", k, tag))
+				if writeTag {
+					s.buff.WriteString(fmt.Sprintf("\t%s `json:%q`\n", k, tag))
+				}
 				continue
 			}
 			// a slicemap is a signal that it is a []T which means pluralize
@@ -337,12 +341,17 @@ func defineStruct(q *queue.Queue, tagKeys []string, result chan []byte, wg *sync
 				tmp := newStructDef(k, val.Elem().Index(0).Elem())
 				q.Enqueue(tmp)
 				s.buff.WriteString(fmt.Sprintf("\t%ss []%s ", k, k))
-				s.buff.WriteString(defineFieldTags(tag, tagKeys))
+				if writeTag {
+					s.buff.WriteString(defineFieldTags(tag, tagKeys))
+				}
 				s.buff.WriteRune('\n')
 				continue
 			}
 			s.buff.WriteString(fmt.Sprintf("\t%s %s ", k, typ))
-			s.buff.WriteString(defineFieldTags(tag, tagKeys))
+			if writeTag {
+				s.buff.WriteString(defineFieldTags(tag, tagKeys))
+			}
+
 			s.buff.WriteRune('\n')
 		}
 		result <- s.Bytes()
